@@ -5,7 +5,7 @@ import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.smithy.kotlin.runtime.content.asByteStream
 import java.io.File
 
-class S3Uploader {
+class S3Methods {
     suspend fun uploadImage(bucketName: String, objectKey: String, objectPath: String) {
         val request = PutObjectRequest {
             bucket = bucketName
