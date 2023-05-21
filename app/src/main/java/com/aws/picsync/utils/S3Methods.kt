@@ -10,17 +10,19 @@ import java.io.File
 import java.lang.Exception
 
 class S3Methods {
-    suspend fun checkBucketExists(bucketName: String) {
+    suspend fun checkBucketExists(bucketName: String): Boolean {
         val request = HeadBucketRequest {
             bucket = bucketName
         }
 
-        try {
+        return try {
             S3Client { region = "us-west-1" }.use { s3 ->
                 s3.headBucket(request)
             }
+            true
         } catch (e: Exception) {
             println("$bucketName already exists")
+            false
         }
     }
     suspend fun createNewBucket(bucketName: String) {
