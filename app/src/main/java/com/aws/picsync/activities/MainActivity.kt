@@ -1,23 +1,20 @@
 package com.aws.picsync.activities
 
 import android.app.Activity
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
-import com.aws.picsync.ui.theme.PicsyncTheme
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Button
+import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
-
 import com.aws.picsync.R
+import com.aws.picsync.utils.S3Methods
+import java.io.File
+
 
 class MainActivity : ComponentActivity() {
+    private val s3Methods = S3Methods();
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -34,7 +31,16 @@ class MainActivity : ComponentActivity() {
             // There are no request codes
             val data: Intent? = result.data
             val imageUri: Uri? = data?.data
+            val imagePath =  getPathFromURI(imageUri)
+            println("Image path: $imagePath")
         }
+    }
+
+    private fun getPathFromURI(uri: Uri?): String? {
+        val cursor = contentResolver.query(uri!!, null, null, null, null)
+        cursor!!.moveToFirst()
+        val idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA)
+        return cursor.getString(idx)
     }
 
 }
