@@ -5,7 +5,9 @@ An Android application that transfers photos from your phone to your computer.
 ## **Technologies**
 
 - Android
-- AWS
+- AWS S3
+- Jetpack Compose
+- Material Components
 
 ## **Getting Started**
 
