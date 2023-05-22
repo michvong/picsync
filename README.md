@@ -1,4 +1,4 @@
-# PicSync
+# PicSync 📸
 
 An Android application that transfers photos from your phone to your computer.
 
