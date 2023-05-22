@@ -2,6 +2,7 @@ package com.aws.picsync.activities
 
 import android.Manifest
 import android.app.Activity
+import android.content.ClipData
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -50,24 +51,57 @@ class MainActivity : ComponentActivity() {
 
     private var resultLauncher = registerForActivityResult(StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
-            // There are no request codes
             val data: Intent? = result.data
-            val imageUri: Uri? = data?.data
-            val imagePath =  getPathFromURI(imageUri)
-//            println("Image path: $imagePath")
+            if (data != null) {
+                val clipData = data.clipData
+                if (clipData != null) {
+                    handleMultipleImageSelection(clipData)
+                } else {
+                    val imageUri: Uri? = data.data
+                    if (imageUri != null) {
+                        handleSingleImageSelection(imageUri)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun handleMultipleImageSelection(clipData: ClipData) {
+        for (i in 0 until clipData.itemCount) {
+            val imageUri: Uri? = clipData.getItemAt(i).uri
+            val imagePath = getPathFromURI(imageUri)
 
             if (imagePath != null) {
                 val fileName = File(imagePath).name
 
                 CoroutineScope(Dispatchers.Main).launch {
                     withContext(Dispatchers.IO) {
-                        s3Methods.createNewBucket(bucketName = dotenv["BUCKET_NAME"]);
+                        s3Methods.createNewBucket(bucketName = dotenv["BUCKET_NAME"])
                         s3Methods.uploadImage(
                             bucketName = dotenv["BUCKET_NAME"],
                             objectKey = fileName,
                             objectPath = imagePath
                         )
                     }
+                }
+            }
+        }
+    }
+
+    private fun handleSingleImageSelection(imageUri: Uri) {
+        val imagePath = getPathFromURI(imageUri)
+
+        if (imagePath != null) {
+            val fileName = File(imagePath).name
+
+            CoroutineScope(Dispatchers.Main).launch {
+                withContext(Dispatchers.IO) {
+                    s3Methods.createNewBucket(bucketName = dotenv["BUCKET_NAME"]);
+                    s3Methods.uploadImage(
+                        bucketName = dotenv["BUCKET_NAME"],
+                        objectKey = fileName,
+                        objectPath = imagePath
+                    )
                 }
             }
         }
