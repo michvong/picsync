@@ -44,7 +44,7 @@ For detailed instructions, refer to the "Use temporary credentials" section in [
 
 ## **Notes**
 
-- Referring to the [AWS documentation](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/kotlin/usecases/subpub_app_android), "because the Kotlin code is running on a mobile device, you cannot use some of the AWS credential providers such as Shared credentials. This is because the mobile application can't read the credentials file from your local computer. For this reason, the StaticCredentialsProvider provider is used.
+- Because the Kotlin code is running on a mobile device, you cannot use some of the AWS credential providers such as Shared credentials. This is because the mobile application can't read the credentials file from your local computer. For this reason, the StaticCredentialsProvider provider is used. Refer to the [AWS documentation](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/kotlin/usecases/subpub_app_android) for more information.
 ```
 private fun getStatic() : StaticCredentialsProvider {
     val staticCredentials = StaticCredentialsProvider {
