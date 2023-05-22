@@ -2,7 +2,6 @@ package com.aws.picsync.activities
 
 import android.Manifest
 import android.app.Activity
-import android.content.ClipData
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -14,20 +13,11 @@ import androidx.activity.result.contract.ActivityResultContracts.StartActivityFo
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.aws.picsync.R
-import com.aws.picsync.utils.S3Methods
-import io.github.cdimascio.dotenv.dotenv
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.io.File
+import com.aws.picsync.model.ImageModel
 
 class MainActivity : ComponentActivity() {
-    private val dotenv = dotenv {
-        directory = "/assets"
-        filename = "env"
-    }
-    private val s3Methods = S3Methods();
+    private val image = ImageModel();
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -55,63 +45,14 @@ class MainActivity : ComponentActivity() {
             if (data != null) {
                 val clipData = data.clipData
                 if (clipData != null) {
-                    handleMultipleImageSelection(clipData)
+                    image.handleMultipleImageSelection(clipData, contentResolver)
                 } else {
                     val imageUri: Uri? = data.data
                     if (imageUri != null) {
-                        handleSingleImageSelection(imageUri)
+                        image.handleSingleImageSelection(imageUri, contentResolver)
                     }
                 }
             }
         }
     }
-
-    private fun handleMultipleImageSelection(clipData: ClipData) {
-        for (i in 0 until clipData.itemCount) {
-            val imageUri: Uri? = clipData.getItemAt(i).uri
-            val imagePath = getPathFromURI(imageUri)
-
-            if (imagePath != null) {
-                val fileName = File(imagePath).name
-
-                CoroutineScope(Dispatchers.Main).launch {
-                    withContext(Dispatchers.IO) {
-                        s3Methods.createNewBucket(bucketName = dotenv["BUCKET_NAME"])
-                        s3Methods.uploadImage(
-                            bucketName = dotenv["BUCKET_NAME"],
-                            objectKey = fileName,
-                            objectPath = imagePath
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    private fun handleSingleImageSelection(imageUri: Uri) {
-        val imagePath = getPathFromURI(imageUri)
-
-        if (imagePath != null) {
-            val fileName = File(imagePath).name
-
-            CoroutineScope(Dispatchers.Main).launch {
-                withContext(Dispatchers.IO) {
-                    s3Methods.createNewBucket(bucketName = dotenv["BUCKET_NAME"]);
-                    s3Methods.uploadImage(
-                        bucketName = dotenv["BUCKET_NAME"],
-                        objectKey = fileName,
-                        objectPath = imagePath
-                    )
-                }
-            }
-        }
-    }
-
-    private fun getPathFromURI(uri: Uri?): String? {
-        val cursor = contentResolver.query(uri!!, null, null, null, null)
-        cursor!!.moveToFirst()
-        val idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA)
-        return cursor.getString(idx)
-    }
-
 }
