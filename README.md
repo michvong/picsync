@@ -42,6 +42,17 @@ For `BUCKET_NAME`, refer to the [Bucket Naming Rules](https://docs.aws.amazon.co
 The AWS credentials can be accessed from your AWS access portal URL. Credentials that are created by IAM users are valid for the duration that you specify.
 For detailed instructions, refer to the "Use temporary credentials" section in [AWS SDK for Kotlin documentation](https://docs.aws.amazon.com/sdk-for-kotlin/latest/developer-guide/setup-basic-onetime-setup.html).
 
-## **Notes/Known Issues**
+## **Notes**
 
-- N/A
+- Referring to the [AWS documentation](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/kotlin/usecases/subpub_app_android), "because the Kotlin code is running on a mobile device, you cannot use some of the AWS credential providers such as Shared credentials. This is because the mobile application can't read the credentials file from your local computer. For this reason, the StaticCredentialsProvider provider is used.
+```
+private fun getStatic() : StaticCredentialsProvider {
+    val staticCredentials = StaticCredentialsProvider {
+        accessKeyId = dotenv["AWS_ACCESS_KEY_ID"]
+        secretAccessKey = dotenv["AWS_SECRET_ACCESS_KEY"]
+        sessionToken = dotenv["AWS_SESSION_TOKEN"]
+    }
+    return staticCredentials
+}
+```
+
