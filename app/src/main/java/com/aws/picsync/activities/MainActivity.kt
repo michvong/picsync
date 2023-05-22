@@ -7,35 +7,55 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.widget.Button
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.compose.foundation.layout.Column
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.aws.picsync.R
 import com.aws.picsync.model.ImageModel
+import com.aws.picsync.ui.components.TopAppBar
+import com.aws.picsync.ui.theme.PicsyncTheme
 
 class MainActivity : ComponentActivity() {
-    private val image = ImageModel();
+    private val image = ImageModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        val galleryButton = findViewById<Button>(R.id.galleryButton);
-        openGallery(galleryButton);
+        super.onCreate(savedInstanceState)
+        setContent {
+            PicsyncTheme {
+                MyAppContent()
+            }
+        }
     }
 
-    private fun openGallery(galleryButton: Button) {
-        val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-        galleryButton.setOnClickListener {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
-                resultLauncher.launch(galleryIntent);
-            } else {
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 1);
-                resultLauncher.launch(galleryIntent);
+    @Composable
+    fun MyAppContent() {
+        Column {
+            TopAppBar()
+            GalleryButton()
+        }
+    }
+
+    @Composable
+    fun GalleryButton() {
+        val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
+
+        Button(
+            onClick = {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
+                    resultLauncher.launch(galleryIntent)
+                } else {
+                    ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 1)
+                    resultLauncher.launch(galleryIntent)
+                }
             }
+        ) {
+            Text(text = "Open Gallery")
         }
     }
 
