@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Button
@@ -50,7 +49,7 @@ class MainActivity : ComponentActivity() {
             val data: Intent? = result.data
             val imageUri: Uri? = data?.data
             val imagePath =  getPathFromURI(imageUri)
-            println("Image path: $imagePath")
+//            println("Image path: $imagePath")
 
             if (imagePath != null) {
                 val fileName = File(imagePath).name
