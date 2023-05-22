@@ -10,10 +10,18 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import com.aws.picsync.R
 import com.aws.picsync.utils.S3Methods
+import io.github.cdimascio.dotenv.dotenv
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
-
 class MainActivity : ComponentActivity() {
+    private val dotenv = dotenv {
+        directory = "/assets"
+        filename = "env"
+    }
     private val s3Methods = S3Methods();
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState);
@@ -33,6 +41,21 @@ class MainActivity : ComponentActivity() {
             val imageUri: Uri? = data?.data
             val imagePath =  getPathFromURI(imageUri)
             println("Image path: $imagePath")
+
+            if (imagePath != null) {
+                val fileName = File(imagePath).name
+
+                CoroutineScope(Dispatchers.Main).launch {
+                    withContext(Dispatchers.IO) {
+                        s3Methods.createNewBucket(bucketName = dotenv["BUCKET_NAME"]);
+//                        s3Methods.uploadImage(
+//                            bucketName = dotenv["BUCKET_NAME"]
+//                            objectKey = fileName,
+//                            objectPath = imagePath
+//                        )
+                    }
+                }
+            }
         }
     }
 
