@@ -32,7 +32,12 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.activity_main);
 
         val galleryButton = findViewById<Button>(R.id.galleryButton);
+        openGallery(galleryButton);
+    }
+
+    private fun openGallery(galleryButton: Button) {
         val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        galleryIntent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         galleryButton.setOnClickListener {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
                 resultLauncher.launch(galleryIntent);
