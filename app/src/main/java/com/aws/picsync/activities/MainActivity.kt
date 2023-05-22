@@ -1,13 +1,18 @@
 package com.aws.picsync.activities
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Button
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.aws.picsync.R
 import com.aws.picsync.utils.S3Methods
 import io.github.cdimascio.dotenv.dotenv
@@ -28,9 +33,14 @@ class MainActivity : ComponentActivity() {
         setContentView(R.layout.activity_main);
 
         val galleryButton = findViewById<Button>(R.id.galleryButton);
+        val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         galleryButton.setOnClickListener {
-            val galleryIntent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            resultLauncher.launch(galleryIntent);
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED) {
+                resultLauncher.launch(galleryIntent);
+            } else {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.READ_MEDIA_IMAGES), 1);
+                resultLauncher.launch(galleryIntent);
+            }
         }
     }
 
@@ -48,11 +58,11 @@ class MainActivity : ComponentActivity() {
                 CoroutineScope(Dispatchers.Main).launch {
                     withContext(Dispatchers.IO) {
                         s3Methods.createNewBucket(bucketName = dotenv["BUCKET_NAME"]);
-//                        s3Methods.uploadImage(
-//                            bucketName = dotenv["BUCKET_NAME"]
-//                            objectKey = fileName,
-//                            objectPath = imagePath
-//                        )
+                        s3Methods.uploadImage(
+                            bucketName = dotenv["BUCKET_NAME"],
+                            objectKey = fileName,
+                            objectPath = imagePath
+                        )
                     }
                 }
             }

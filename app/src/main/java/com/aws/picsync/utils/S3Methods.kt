@@ -37,16 +37,16 @@ class S3Methods {
                 credentialsProvider = getStatic()
             }.use { s3 ->
                 s3.headBucket(request)
-
             }
+            println("$bucketName already exists")
             true
         } catch (e: Exception) {
-            println("$bucketName already exists")
+            println("$bucketName doesn't exist")
             false
         }
     }
     suspend fun createNewBucket(bucketName: String) {
-        if (!checkBucketExists(bucketName)) {
+        if (checkBucketExists(bucketName)) {
             return;
         }
 
@@ -87,7 +87,10 @@ class S3Methods {
             body = File(objectPath).asByteStream()
         }
 
-        S3Client { region = dotenv["REGION"] }.use { s3 ->
+        S3Client {
+            region = dotenv["REGION"]
+            credentialsProvider = getStatic()
+        }.use { s3 ->
             val response = s3.putObject(request)
             println("Tag information is ${response.eTag}")
         }
