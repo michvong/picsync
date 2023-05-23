@@ -66,4 +66,28 @@ class ImageModel {
         val idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA)
         return cursor.getString(idx)
     }
+
+    fun getGalleryPhotos(contentResolver: ContentResolver): List<String> {
+        val galleryPaths = mutableListOf<String>()
+        val projection = arrayOf(MediaStore.Images.Media.DATA)
+        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
+
+        val query = contentResolver.query(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            null,
+            null,
+            sortOrder
+        )
+
+        query?.use { cursor ->
+            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+            while (cursor.moveToNext()) {
+                val data = cursor.getString(dataColumn)
+                galleryPaths.add(data)
+            }
+        }
+
+        return galleryPaths
+    }
 }
