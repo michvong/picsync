@@ -21,7 +21,7 @@ class ImageModel {
     fun handleImageSend(imagePaths: SnapshotStateList<Int>, contentResolver: ContentResolver) {
         for (i in imagePaths.indices) {
             val imageIndex = imagePaths[i]
-            val galleryPaths = getGalleryPhotos(contentResolver = contentResolver)
+            val galleryPaths = getGalleryPhotos(contentResolver)
             val imagePath = galleryPaths[imageIndex]
             val fileName = File(imagePath).name
 

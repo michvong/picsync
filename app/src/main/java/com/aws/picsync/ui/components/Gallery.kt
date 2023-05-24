@@ -45,7 +45,6 @@ fun GalleryScreen(contentResolver: ContentResolver, innerPadding: PaddingValues,
 
     when {
         permissionState.hasPermission -> {
-            PhotoGrid(contentResolver = contentResolver, innerPadding = innerPadding, selectedPhotos = selectedPhotos)
         }
         permissionState.shouldShowRationale -> {
             println("To order to access PicSync utilities, permission to access media is required.")
@@ -84,7 +83,7 @@ private fun PhotoGrid(contentResolver: ContentResolver, innerPadding: PaddingVal
                         .fillMaxSize()
                         .padding(0.5.dp)
                         .clickable {
-                            toggleSelection(selectedPhotos = selectedPhotos, index = index)
+                            toggleSelection(selectedPhotos, index)
                         }
                 )
                 if (isSelected) {
