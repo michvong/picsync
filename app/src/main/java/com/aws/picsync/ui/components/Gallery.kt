@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -61,7 +60,6 @@ fun GalleryScreen(contentResolver: ContentResolver, innerPadding: PaddingValues,
 @Composable
 private fun PhotoGrid(contentResolver: ContentResolver, innerPadding: PaddingValues, selectedPhotos: SnapshotStateList<Int>) {
     val galleryPaths = remember { image.getGalleryPhotos(contentResolver) }
-//    val selectedPhotos = remember { mutableStateListOf<Int>() }
 
     LazyVerticalGrid(
         modifier = Modifier.consumeWindowInsets(innerPadding),
