@@ -12,9 +12,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -29,19 +37,31 @@ private val image = ImageModel()
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun GalleryScreen(contentResolver: ContentResolver, innerPadding: PaddingValues) {
-    val permissionState = rememberPermissionState(Manifest.permission.READ_EXTERNAL_STORAGE)
+    val permissionState = rememberPermissionState(Manifest.permission.READ_MEDIA_IMAGES)
 
     LaunchedEffect(permissionState) {
         permissionState.launchPermissionRequest()
     }
-    
-    PhotoGrid(contentResolver = contentResolver, innerPadding = innerPadding)
+
+
+    when {
+        permissionState.hasPermission -> {
+            PhotoGrid(contentResolver = contentResolver, innerPadding = innerPadding)
+        }
+        permissionState.shouldShowRationale -> {
+            println("To order to access PicSync utilities, permission to access media is required.")
+        }
+        else -> {
+            // Permission denied, handle accordingly
+        }
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PhotoGrid(contentResolver: ContentResolver, innerPadding: PaddingValues) {
-    val galleryPaths = image.getGalleryPhotos(contentResolver)
+    val galleryPaths = remember { image.getGalleryPhotos(contentResolver) }
+    val selectedPhotos = remember { mutableStateListOf<Int>() }
 
     LazyVerticalGrid(
         modifier = Modifier.consumeWindowInsets(innerPadding),
@@ -54,6 +74,7 @@ fun PhotoGrid(contentResolver: ContentResolver, innerPadding: PaddingValues) {
                     .aspectRatio(1f)
                     .padding(2.dp)
             ) {
+                val isSelected = selectedPhotos.contains(index)
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
                         .data(galleryPaths[index])
@@ -64,10 +85,38 @@ fun PhotoGrid(contentResolver: ContentResolver, innerPadding: PaddingValues) {
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(0.5.dp)
-                        .clickable { println("hi") }
+                        .clickable {
+                            toggleSelection(selectedPhotos = selectedPhotos, index = index)
+                        }
                 )
+                if (isSelected) {
+                    SelectedPhoto()
+                }
             }
         }
     }
 }
 
+fun toggleSelection(selectedPhotos: SnapshotStateList<Int>, index: Int) {
+    if (selectedPhotos.contains(index)) {
+        selectedPhotos.remove(index)
+    } else {
+        selectedPhotos.add(index)
+    }
+}
+
+@Composable
+fun SelectedPhoto() {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            contentAlignment = Alignment.BottomEnd
+        ) {
+            Icon(
+                imageVector = Icons.Filled.CheckCircle,
+                contentDescription = null,
+                tint = Color.White
+            )
+        }
+}
