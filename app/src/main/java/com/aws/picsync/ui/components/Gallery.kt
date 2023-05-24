@@ -45,6 +45,7 @@ fun GalleryScreen(contentResolver: ContentResolver, innerPadding: PaddingValues,
 
     when {
         permissionState.hasPermission -> {
+            PhotoGrid(contentResolver, innerPadding, selectedPhotos)
         }
         permissionState.shouldShowRationale -> {
             println("To order to access PicSync utilities, permission to access media is required.")

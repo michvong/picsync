@@ -3,7 +3,7 @@ package com.aws.picsync.ui.components
 import android.content.ContentResolver
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -33,7 +33,7 @@ fun TopAppBar(selectedPhotos: SnapshotStateList<Int>, contentResolver: ContentRe
         actions = {
             IconButton(onClick = { image.handleImageSend(selectedPhotos, contentResolver)}) {
                 Icon(
-                    imageVector = Icons.Filled.Refresh,
+                    imageVector = Icons.Filled.Send,
                     contentDescription = "Localized description"
                 )
             }
