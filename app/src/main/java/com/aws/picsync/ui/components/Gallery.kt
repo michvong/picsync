@@ -36,7 +36,7 @@ private val image = ImageModel()
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun GalleryScreen(contentResolver: ContentResolver, innerPadding: PaddingValues) {
+fun GalleryScreen(contentResolver: ContentResolver, innerPadding: PaddingValues, selectedPhotos: SnapshotStateList<Int>) {
     val permissionState = rememberPermissionState(Manifest.permission.READ_MEDIA_IMAGES)
 
     LaunchedEffect(permissionState) {
@@ -46,7 +46,7 @@ fun GalleryScreen(contentResolver: ContentResolver, innerPadding: PaddingValues)
 
     when {
         permissionState.hasPermission -> {
-            PhotoGrid(contentResolver = contentResolver, innerPadding = innerPadding)
+            PhotoGrid(contentResolver = contentResolver, innerPadding = innerPadding, selectedPhotos = selectedPhotos)
         }
         permissionState.shouldShowRationale -> {
             println("To order to access PicSync utilities, permission to access media is required.")
@@ -59,9 +59,9 @@ fun GalleryScreen(contentResolver: ContentResolver, innerPadding: PaddingValues)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun PhotoGrid(contentResolver: ContentResolver, innerPadding: PaddingValues) {
+private fun PhotoGrid(contentResolver: ContentResolver, innerPadding: PaddingValues, selectedPhotos: SnapshotStateList<Int>) {
     val galleryPaths = remember { image.getGalleryPhotos(contentResolver) }
-    val selectedPhotos = remember { mutableStateListOf<Int>() }
+//    val selectedPhotos = remember { mutableStateListOf<Int>() }
 
     LazyVerticalGrid(
         modifier = Modifier.consumeWindowInsets(innerPadding),
@@ -97,7 +97,7 @@ fun PhotoGrid(contentResolver: ContentResolver, innerPadding: PaddingValues) {
     }
 }
 
-fun toggleSelection(selectedPhotos: SnapshotStateList<Int>, index: Int) {
+private fun toggleSelection(selectedPhotos: SnapshotStateList<Int>, index: Int) {
     if (selectedPhotos.contains(index)) {
         selectedPhotos.remove(index)
     } else {
@@ -106,7 +106,7 @@ fun toggleSelection(selectedPhotos: SnapshotStateList<Int>, index: Int) {
 }
 
 @Composable
-fun SelectedPhoto() {
+private fun SelectedPhoto() {
         Box(
             modifier = Modifier
                 .fillMaxSize()

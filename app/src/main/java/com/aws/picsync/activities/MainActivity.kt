@@ -6,6 +6,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import com.aws.picsync.ui.components.GalleryScreen
 import com.aws.picsync.ui.components.TopAppBar
 import com.aws.picsync.ui.theme.PicsyncTheme
@@ -24,12 +26,13 @@ class MainActivity : ComponentActivity() {
     @ExperimentalFoundationApi
     @Composable
     fun ActivityScreen() {
+        val selectedPhotos = remember { mutableStateListOf<Int>() }
         Scaffold(
             topBar = {
-                TopAppBar()
+                TopAppBar(selectedPhotos, contentResolver)
             },
             content = { innerPadding ->
-                GalleryScreen(contentResolver = contentResolver, innerPadding = innerPadding)
+                GalleryScreen(contentResolver, innerPadding, selectedPhotos)
             }
         )
     }

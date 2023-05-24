@@ -4,6 +4,7 @@ import android.content.ClipData
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.MediaStore
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.aws.picsync.utils.S3Methods
 import io.github.cdimascio.dotenv.dotenv
 import kotlinx.coroutines.CoroutineScope
@@ -65,6 +66,26 @@ class ImageModel {
         cursor!!.moveToFirst()
         val idx = cursor.getColumnIndex(MediaStore.Images.ImageColumns.DATA)
         return cursor.getString(idx)
+    }
+
+    fun handleImageSend(imagePaths: SnapshotStateList<Int>, contentResolver: ContentResolver) {
+        for (i in imagePaths.indices) {
+            val imageIndex = imagePaths[i]
+            val galleryPaths = getGalleryPhotos(contentResolver = contentResolver)
+            val imagePath = galleryPaths[imageIndex]
+            val fileName = File(imagePath).name
+
+            CoroutineScope(Dispatchers.Main).launch {
+                withContext(Dispatchers.IO) {
+                    s3Methods.createNewBucket(bucketName = dotenv["BUCKET_NAME"])
+                    s3Methods.uploadImage(
+                        bucketName = dotenv["BUCKET_NAME"],
+                        objectKey = fileName,
+                        objectPath = imagePath
+                    )
+                }
+            }
+        }
     }
 
     fun getGalleryPhotos(contentResolver: ContentResolver): List<String> {
