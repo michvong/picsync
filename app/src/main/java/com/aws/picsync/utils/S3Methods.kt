@@ -1,23 +1,32 @@
 package com.aws.picsync.utils
 
-import io.github.cdimascio.dotenv.dotenv
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
 import aws.sdk.kotlin.services.s3.S3Client
 import aws.sdk.kotlin.services.s3.model.BucketLocationConstraint
 import aws.sdk.kotlin.services.s3.model.CreateBucketConfiguration
 import aws.sdk.kotlin.services.s3.model.CreateBucketRequest
+import aws.sdk.kotlin.services.s3.model.Event
+import aws.sdk.kotlin.services.s3.model.GetObjectRequest
 import aws.sdk.kotlin.services.s3.model.HeadBucketRequest
 import aws.sdk.kotlin.services.s3.model.ListObjectsRequest
+import aws.sdk.kotlin.services.s3.model.PutBucketNotificationConfigurationRequest
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
-import aws.smithy.kotlin.runtime.content.asByteStream
+import aws.sdk.kotlin.services.s3.model.TopicConfiguration
+import aws.sdk.kotlin.services.sns.SnsClient
+import aws.sdk.kotlin.services.sns.model.CreateTopicRequest
+import aws.smithy.kotlin.runtime.content.ByteStream
+import aws.smithy.kotlin.runtime.content.writeToFile
+import io.github.cdimascio.dotenv.dotenv
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
-import java.lang.Exception
 
 class S3Methods {
     private val dotenv = dotenv {
         directory = "/assets"
         filename = "env"
     }
+    private val snsMethods = SNSMethods();
     private fun getStatic() : StaticCredentialsProvider {
         val staticCredentials = StaticCredentialsProvider {
             accessKeyId = dotenv["AWS_ACCESS_KEY_ID"]
@@ -43,6 +52,29 @@ class S3Methods {
         } catch (e: Exception) {
             println("$bucketName doesn't exist")
             false
+        }
+    }
+
+    suspend fun addEventNotifConfig(bucketName: String) {
+        val snsTopicArn = snsMethods.createSNSTopic()
+
+        val request = PutBucketNotificationConfigurationRequest {
+            bucket = bucketName
+            notificationConfiguration {
+                topicConfigurations = listOf(
+                    TopicConfiguration {
+                        topicArn = snsTopicArn
+                        events = listOf(Event.S3ObjectCreated)
+                })
+            }
+        }
+
+        S3Client {
+            region = dotenv["REGION"]
+            credentialsProvider = getStatic()
+        }.use { s3 ->
+            s3.putBucketNotificationConfiguration(request)
+            println("$bucketName will track object creation")
         }
     }
     suspend fun createNewBucket(bucketName: String) {
@@ -80,11 +112,11 @@ class S3Methods {
         }
     }
 
-    suspend fun uploadImage(bucketName: String, objectKey: String, objectPath: String) {
+    suspend fun uploadObject(bucketName: String, objectKey: String, objectBytes: ByteStream) {
         val request = PutObjectRequest {
             bucket = bucketName
             key = objectKey
-            body = File(objectPath).asByteStream()
+            body = objectBytes
         }
 
         S3Client {
@@ -94,5 +126,29 @@ class S3Methods {
             val response = s3.putObject(request)
             println("Tag information is ${response.eTag}")
         }
+    }
+
+    suspend fun getObject(bucketName: String, objectKey: String): File? {
+        val file = withContext(Dispatchers.IO) {
+            File.createTempFile("temp", null)
+        }
+
+        val request = GetObjectRequest {
+            bucket = bucketName
+            key = objectKey
+        }
+
+        S3Client {
+            region = dotenv["REGION"]
+            credentialsProvider = getStatic()
+        }.use { s3 ->
+             s3.getObject(request) { response ->
+                 val myFile = File(file.path)
+                 response.body?.writeToFile(myFile)
+            }
+
+        }
+
+        return null
     }
 }
