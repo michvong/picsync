@@ -5,9 +5,9 @@ An Android application that transfers photos from your phone to your computer.
 ## **Technologies**
 
 - Android
-- AWS S3
 - Jetpack Compose
-- Material Components
+- Flask
+- AWS S3, Lambda
 
 ## **Getting Started**
 
@@ -19,7 +19,7 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### **Installation**
 
-1. Create an `assets` folder under `/app/src/main` and a `.env` file inside with the following:
+1. Create a `.env` file in the root directory inside with the following:
 
 ```
 BUCKET_NAME=<your bucket name>
@@ -46,15 +46,4 @@ For detailed instructions, refer to the "Use temporary credentials" section in [
 
 ## **Notes**
 
-- Because the Kotlin code is running on a mobile device, you cannot use some of the AWS credential providers such as Shared credentials. This is because the mobile application can't read the credentials file from your local computer. For this reason, the StaticCredentialsProvider provider is used. Refer to the [AWS documentation](https://github.com/awsdocs/aws-doc-sdk-examples/tree/main/kotlin/usecases/subpub_app_android) for more information.
-```
-private fun getStatic() : StaticCredentialsProvider {
-    val staticCredentials = StaticCredentialsProvider {
-        accessKeyId = dotenv["AWS_ACCESS_KEY_ID"]
-        secretAccessKey = dotenv["AWS_SECRET_ACCESS_KEY"]
-        sessionToken = dotenv["AWS_SESSION_TOKEN"]
-    }
-    return staticCredentials
-}
-```
-
+N/A
