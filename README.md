@@ -7,7 +7,7 @@ An Android application that transfers photos from your phone to your computer.
 - Android
 - Jetpack Compose
 - Flask
-- AWS S3, Lambda
+- AWS S3, Lambda, IAM
 
 ## **Getting Started**
 
