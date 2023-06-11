@@ -66,4 +66,25 @@ class Api {
             }
         })
     }
+
+    fun createLambdaFunction() {
+        val request: Request = Request.Builder()
+            .url("http://10.0.2.2:5000/create-lambda-function")
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                e.printStackTrace()
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val responseBody = response.body.string()
+                    println(responseBody)
+                } else {
+                    println("Unable to create lambda")
+                }
+            }
+        })
+    }
 }
