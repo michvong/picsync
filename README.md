@@ -16,10 +16,11 @@ These instructions will get you a copy of the project up and running on your loc
 ### **Prerequisites**
 
 - An AWS account is required to run PicSync.
+- You should use a role with attached permission policies `PowerUserAccess` and `IAMFullAccess`.
 
 ### **Installation**
 
-1. Create a `.env` file in the root directory inside with the following:
+1. Create a `.env` file in the `/server` directory inside with the following:
 
 ```
 BUCKET_NAME=<your bucket name>
