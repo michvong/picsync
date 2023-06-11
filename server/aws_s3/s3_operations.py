@@ -24,15 +24,14 @@ def create_bucket(bucket_name):
     return "Bucket was successfully created\n"
 
 def upload_file(file, bucket):
-    s3_client = boto3.client(
-        's3',
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-        aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
-        region_name=os.getenv("REGION")
-    )
-
     try:
+        s3_client = boto3.client(
+            's3',
+            aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+            aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
+            region_name=os.getenv("REGION")
+        )
         s3_client.upload_fileobj(file, bucket, file.filename)
         logging.info("Photo uploaded successfully")
         return "Photo uploaded successfully\n"
