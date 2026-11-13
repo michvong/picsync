@@ -1,47 +1,75 @@
-import json
-import boto3
-import gzip
-import os
-from dotenv import load_dotenv
 
-load_dotenv()
+import boto3
+import urllib.parse
+from io import BytesIO
+from PIL import Image, ImageOps
+from pillow_heif import register_heif_opener
+
+s3_client = boto3.client('s3')
+
+register_heif_opener()
 
 def lambda_handler(event, context):
-    s3_client = boto3.client(
-        's3',
-        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-        aws_session_token=os.getenv("AWS_SESSION_TOKEN"),
-        region_name=os.getenv("REGION")
-    )
 
     for record in event['Records']:
+
         bucket = record['s3']['bucket']['name']
-        key = record['s3']['object']['key']
 
-        response = s3_client.head_object(Bucket=bucket, Key=key)
-        object_size = response['ContentLength']
+        key = urllib.parse.unquote_plus(
+            record['s3']['object']['key']
+        )
 
-        # Check if object size exceeds 10MB (10,000,000 bytes)
-        # if object_size > 10000000:
-        response = s3_client.get_object(Bucket=bucket, Key=key)
-        object_data = response['Body'].read()
+        if not key.lower().endswith('.heic'):
+            print(f"Skipping non-HEIC file: {key}")
+            continue
 
-        compressed_data = gzip.compress(object_data)
+        response = s3_client.get_object(
+            Bucket=bucket,
+            Key=key
+        )
 
-        compressed_key = 'compressed/' + key
+        image_data = response['Body'].read()
+
+        image = Image.open(BytesIO(image_data))
+
+        # Correct orientation using EXIF metadata
+        image = ImageOps.exif_transpose(image)
+
+        # JPEG does not support transparency
+        image = image.convert('RGB')
+
+        # Convert image to JPEG in memory
+        jpeg_buffer = BytesIO()
+
+        image.save(
+            jpeg_buffer,
+            format='JPEG',
+            quality=85,
+            optimize=True
+        )
+
+        jpeg_buffer.seek(0)
+
+        # Change file extension from .heic to .jpg
+        jpeg_key = key.rsplit('.', 1)[0] + '.jpg'
 
         s3_client.put_object(
             Bucket=bucket,
-            Key=compressed_key,
-            Body=compressed_data,
-            ContentEncoding='gzip'
+            Key=jpeg_key,
+            Body=jpeg_buffer.getvalue(),
+            ContentType='image/jpeg'
         )
 
-        print(f"Object compressed and uploaded: {bucket}/{compressed_key}")
+        print(f"JPEG uploaded: {bucket}/{jpeg_key}")
+
+        s3_client.delete_object(
+            Bucket=bucket,
+            Key=key
+        )
+
+        print(f"Original HEIC deleted: {bucket}/{key}")
 
     return {
         'statusCode': 200,
-        'body': json.dumps("Photo downloaded from S3: {bucket}/{key} -> {local_path}")
-
+        'body': 'Media processing completed'
     }
